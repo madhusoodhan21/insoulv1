@@ -58,9 +58,6 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen>
         ble.lastPacketAt != null &&
         DateTime.now().difference(ble.lastPacketAt!).inSeconds < 2;
     final hasImuData =
-        ble.accelerationX != null &&
-        ble.accelerationY != null &&
-        ble.accelerationZ != null &&
         ble.gyroscopeX != null &&
         ble.gyroscopeY != null &&
         ble.gyroscopeZ != null;
@@ -145,34 +142,6 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen>
                       ),
                     ),
                     const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _ImuTile(
-                            label: 'Accel X',
-                            value: ble.accelerationX,
-                            unit: 'g',
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _ImuTile(
-                            label: 'Accel Y',
-                            value: ble.accelerationY,
-                            unit: 'g',
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _ImuTile(
-                            label: 'Accel Z',
-                            value: ble.accelerationZ,
-                            unit: 'g',
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
                     Row(
                       children: [
                         Expanded(

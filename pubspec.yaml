@@ -38,6 +38,12 @@ dependencies:
   flutter_blue_plus: ^2.3.12
   permission_handler: ^12.0.1
   google_fonts: ^8.2.1
+  gamepads: ^0.1.11
+  pdf: ^3.11.1
+  printing: ^5.13.4
+  share_plus: ^13.3.0
+  audioplayers: ^6.5.0
+  fl_chart: ^0.69.0
 
 dev_dependencies:
   flutter_test:
@@ -63,8 +69,9 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/images/insoul_logo.png
-  
+    - assets/images/
+    - assets/Audio/correct sound.mp3
+
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a
   # "family" key with the font family name, and a "fonts" key with a
@@ -75,6 +82,14 @@ flutter:
       fonts:
         - asset: assets/fonts/Horizon.otf
           weight: 400
+    - family: "Antique Olive Std Nord"
+      fonts:
+        - asset: assets/fonts/Antique-Olive-Std-Nord_3868.otf
+          weight: 400
+          style: normal
+    - family: veneza
+      fonts:
+        - asset: assets/fonts/VenezaRegular.ttf
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

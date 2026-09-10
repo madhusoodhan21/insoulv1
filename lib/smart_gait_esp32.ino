@@ -37,8 +37,8 @@ struct FootSensor {
 
 // Tune thresholds per sensor after watching raw values — two FSRs rarely
 // read identically even under the same pressure.
-FootSensor footL = {"L", 34, 2800, 1500};
-FootSensor footR = {"R", 35, 2800, 1500};
+FootSensor footL = {"L", 34, 1500, 1500};
+FootSensor footR = {"R", 35, 1500, 1500};
 
 // Cross-foot timing: gap from an L step to the next R step, and from
 // an R step to the next L step. This is what actually reveals a limp —
@@ -53,6 +53,26 @@ unsigned long transitionsLtoR[SAMPLE_STEPS / 2];
 unsigned long transitionsRtoL[SAMPLE_STEPS / 2];
 int countLtoR = 0;
 int countRtoL = 0;
+
+enum LoadState {
+  LOAD_NONE,
+  LOAD_LEFT_ONLY,
+  LOAD_RIGHT_ONLY,
+  LOAD_BOTH
+};
+
+LoadState lastLoadState = LOAD_NONE;
+bool exerciseActive = false;
+unsigned long exerciseStartMs = 0;
+const unsigned long TIMER_INTERVAL_MS = 500;
+unsigned long lastTimerPublish = 0;
+
+LoadState computeLoadState() {
+  if (footL.isPressed && footR.isPressed) return LOAD_BOTH;
+  if (footL.isPressed) return LOAD_LEFT_ONLY;
+  if (footR.isPressed) return LOAD_RIGHT_ONLY;
+  return LOAD_NONE;
+}
 
 class MyServerCallbacks: public BLEServerCallbacks {
   void onConnect(BLEServer* pServer) { deviceConnected = true; }
@@ -102,6 +122,8 @@ void setup() {
 void loop() {
   pollFoot(footL);
   pollFoot(footR);
+  updateLoadState();
+  publishTimer();
   publishImu();
   delay(20);
 }
@@ -262,4 +284,49 @@ void reportSymmetry() {
                     ",\"ltrMs\":" + String((int)avgLtoR) +
                     ",\"rtlMs\":" + String((int)avgRtoL) + "}";
   sendJson(symJson);
+}
+
+// Emits a fresh load packet whenever the user steps on or lifts off the sensor.
+// Any standing state counts as active for exercise timing, including single-leg.
+void sendLoadState(LoadState state) {
+  bool isActive = (state != LOAD_NONE);
+  const char* singleLeg = "none";
+  if (state == LOAD_LEFT_ONLY) singleLeg = "L";
+  else if (state == LOAD_RIGHT_ONLY) singleLeg = "R";
+
+  String loadJson = "{\"type\":\"load\",\"active\":" + String(isActive ? "true" : "false") +
+                   ",\"l\":" + String(footL.isPressed ? "true" : "false") +
+                   ",\"r\":" + String(footR.isPressed ? "true" : "false") +
+                   ",\"singleLeg\":\"" + String(singleLeg) + "\""
+                   + ",\"elapsedMs\":" + String(exerciseActive ? (millis() - exerciseStartMs) : 0) + "}";
+  sendJson(loadJson);
+}
+
+// Delivers a timer message only while the exercise is active; the app ignores the
+// firmware's global elapsedMs for rep timing and instead uses the first load-active
+// event as its start trigger.
+void publishTimer() {
+  if (!exerciseActive) return;
+  if (millis() - lastTimerPublish < TIMER_INTERVAL_MS) return;
+  lastTimerPublish = millis();
+
+  String timerJson = "{\"type\":\"timer\",\"elapsedMs\":" + String(millis() - exerciseStartMs) + "}";
+  sendJson(timerJson);
+}
+
+void updateLoadState() {
+  LoadState state = computeLoadState();
+
+  if (state != lastLoadState) {
+    lastLoadState = state;
+
+    bool isActive = (state != LOAD_NONE);
+    if (isActive && !exerciseActive) {
+      exerciseActive = true;
+      exerciseStartMs = millis();
+      lastTimerPublish = 0;
+    }
+
+    sendLoadState(state);
+  }
 }

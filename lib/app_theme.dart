@@ -44,6 +44,7 @@ class AppFonts {
   AppFonts._();
 
   static const String _family = 'Horizon';
+  static const String _descriptionFamily = 'Antique Olive Std Nord';
 
   static TextStyle metric({
     double fontSize = 32,
@@ -64,12 +65,14 @@ class AppFonts {
     FontWeight fontWeight = FontWeight.w700,
     Color? color,
     double? height,
+    double? letterSpacing,
   }) => TextStyle(
     fontFamily: _family,
     fontSize: fontSize,
     fontWeight: fontWeight,
     color: color ?? AppColors.text,
     height: height,
+    letterSpacing: letterSpacing,
   );
 
   static TextStyle body({
@@ -85,16 +88,32 @@ class AppFonts {
     height: height,
   );
 
+  static TextStyle description({
+    double fontSize = 14,
+    FontWeight fontWeight = FontWeight.w400,
+    Color? color,
+    double? height,
+  }) => TextStyle(
+    fontFamily: _descriptionFamily,
+    fontFamilyFallback: const ['sans-serif'],
+    fontSize: fontSize,
+    fontWeight: fontWeight,
+    fontStyle: FontStyle.italic,
+    color: color ?? AppColors.textMid,
+    height: height,
+  );
+
   static TextStyle label({
     double fontSize = 12,
     Color? color,
     FontWeight fontWeight = FontWeight.w600,
+    double? letterSpacing,
   }) => TextStyle(
     fontFamily: _family,
     fontSize: fontSize,
     fontWeight: fontWeight,
     color: color ?? AppColors.textMid,
-    letterSpacing: 0.05 * fontSize,
+    letterSpacing: letterSpacing ?? (0.05 * fontSize),
   );
 
   // Kept for the couple of legacy screens (calibration/diagnostics) that

@@ -1,0 +1,25 @@
+# Flutter/Dart generated files
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Flutter plugin and tooling metadata
+.flutter-plugins
+.flutter-plugins-dependencies
+.widget_preview/
+
+# Android/Gradle generated files
+android/.gradle/
+android/app/build/
+
+# IDE and local machine files
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Release artifacts
+*.apk
+*.aab

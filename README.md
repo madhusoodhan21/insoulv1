@@ -85,3 +85,9 @@ gyroscope readings are wired to real ESP32 data.
 Public Sans + Space Grotesk via `google_fonts` (no manual font files).
 `assets/images/insoul_logo.png` is bundled and registered in
 `pubspec.yaml`.
+
+## Biomechanical & Gait Analysis Algorithms
+For full mathematical specifications, formulas, and implementations of all gait metrics, temporal sub-phasing, symmetry calculations, vGRF waveforms, and IMU kinematics:
+- **Markdown**: [`ALGORITHMS_README.md`](ALGORITHMS_README.md)
+- **Microsoft Word Document**: [`InSoul_Biomechanical_Algorithms_Guide.docx`](InSoul_Biomechanical_Algorithms_Guide.docx)
+

@@ -24,6 +24,36 @@ class ScanScreen extends StatefulWidget {
 class _ScanScreenState extends State<ScanScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulse;
+  bool _isTransitioning = false;
+
+  Route<void> _homeRoute() {
+    return PageRouteBuilder<void>(
+      opaque: true,
+      transitionDuration: const Duration(milliseconds: 850),
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          const AppShell(),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return Stack(
+          children: [
+            const ColoredBox(color: Colors.black),
+            FadeTransition(opacity: animation, child: child),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _proceedToHome(BleService ble) async {
+    if (_isTransitioning) return;
+    setState(() => _isTransitioning = true);
+    final stopScan = ble.isScanning ? ble.stopScan() : Future<void>.value();
+    await Future.wait([
+      stopScan,
+      Future<void>.delayed(const Duration(seconds: 1)),
+    ]);
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(_homeRoute());
+  }
 
   // NOTE: scanning is intentionally NOT auto-started here. On Flutter Web,
   // FlutterBluePlus.startScan() calls the browser's
@@ -81,16 +111,22 @@ class _ScanScreenState extends State<ScanScreen>
                         final centerSize = animationSize * 0.594;
                         return Column(
                           children: [
-                            SizedBox(
-                              width: logoSize,
-                              height: logoSize,
-                              child: Image.asset('assets/images/insoul_logo.png', fit: BoxFit.contain),
+                            Hero(
+                              tag: 'insoul-logo',
+                              child: SizedBox(
+                                width: logoSize,
+                                height: 90,
+                                child: Image.asset(
+                                  'assets/images/insoul_logo.png',
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 50),
                             Text(
                               'Make sure your InSoul shoes are in docked mode',
                               textAlign: TextAlign.center,
-                              style: AppFonts.body(fontSize: 15, color: AppColors.textMid),
+                              style: AppFonts.description(fontSize: 15, color: AppColors.textMid),
                             ),
                             const SizedBox(height: 24),
                             SizedBox(
@@ -112,10 +148,24 @@ class _ScanScreenState extends State<ScanScreen>
                                           color: AppColors.surfaceHigher,
                                         ),
                                         alignment: Alignment.center,
-                                        child: Icon(
-                                          Icons.bluetooth,
-                                          size: centerSize * 0.38,
-                                          color: ble.isScanning ? AppColors.greenBright : AppColors.green,
+                                        child: AnimatedSwitcher(
+                                          duration: const Duration(milliseconds: 250),
+                                          child: _isTransitioning
+                                              ? SizedBox(
+                                                  key: const ValueKey('loading'),
+                                                  width: centerSize * 0.38,
+                                                  height: centerSize * 0.38,
+                                                  child: const CircularProgressIndicator(
+                                                    strokeWidth: 3,
+                                                    color: AppColors.greenBright,
+                                                  ),
+                                                )
+                                              : Icon(
+                                                  Icons.bluetooth,
+                                                  key: const ValueKey('bluetooth'),
+                                                  size: centerSize * 0.38,
+                                                  color: ble.isScanning ? AppColors.greenBright : AppColors.green,
+                                                ),
                                         ),
                                       ),
                                     ],
@@ -162,16 +212,20 @@ class _ScanScreenState extends State<ScanScreen>
                       ),
                     ),
                     const SizedBox(height: 12),
+                    if (!ble.connected)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Text(
+                          'Debug: Y = left FSR · U = right FSR',
+                          style: AppFonts.label(fontSize: 10, color: AppColors.textDim),
+                        ),
+                      ),
                     SizedBox(
                       width: double.infinity,
                       height: 52,
                       child: OutlinedButton(
                         onPressed: () async {
-                          if (ble.isScanning) await ble.stopScan();
-                          if (!context.mounted) return;
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(builder: (_) => const AppShell()),
-                          );
+                          await _proceedToHome(ble);
                         },
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.textMid,
@@ -221,9 +275,7 @@ class _ScanScreenState extends State<ScanScreen>
                             if (!context.mounted) return;
                             if (connected) {
                               if (widget.isEntryFlow) {
-                                Navigator.of(context).pushReplacement(
-                                  MaterialPageRoute(builder: (_) => const AppShell()),
-                                );
+                                await _proceedToHome(ble);
                               } else {
                                 Navigator.of(context).pop(true);
                               }

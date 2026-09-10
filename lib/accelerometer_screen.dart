@@ -3,27 +3,23 @@ import 'package:provider/provider.dart';
 import 'app_theme.dart';
 import 'ble_service.dart';
 
-/// New Profile menu screen: live MPU6050 accelerometer/gyroscope readout.
-/// BleService already parses `ax`/`ay`/`az`/`gx`/`gy`/`gz` out of the
-/// ESP32's IMU JSON payload (see ble_service.dart's `_updateStepCountFromBytes`)
-/// — this screen just displays those fields and updates live via Provider,
-/// no new BLE plumbing needed.
+/// Live MPU6050 gyroscope readout.
 class AccelerometerScreen extends StatelessWidget {
   const AccelerometerScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final ble = context.watch<BleService>();
-    final hasData = ble.accelerationX != null ||
-        ble.accelerationY != null ||
-        ble.accelerationZ != null;
+    final hasData = ble.gyroscopeX != null ||
+      ble.gyroscopeY != null ||
+      ble.gyroscopeZ != null;
 
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         backgroundColor: AppColors.bg,
         elevation: 0,
-        title: Text('Accelerometer', style: AppFonts.headline(fontSize: 18)),
+        title: Text('Gyroscope', style: AppFonts.headline(fontSize: 18)),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -62,22 +58,9 @@ class AccelerometerScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'Live orientation and motion data streamed from the ESP32\'s '
-                'MPU6050 (6-axis IMU) over the same BLE characteristic as the '
-                'step count.',
+                'Live angular velocity data streamed from the ESP32\'s MPU6050 '
+                'gyroscope over the same BLE characteristic as the step count.',
                 style: AppFonts.body(fontSize: 13, color: AppColors.textMid, height: 1.4),
-              ),
-              const SizedBox(height: 24),
-              Text('ACCELEROMETER (g)', style: AppFonts.label(fontSize: 11)),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(child: _AxisCard(axis: 'X', value: ble.accelerationX, color: AppColors.red)),
-                  const SizedBox(width: 10),
-                  Expanded(child: _AxisCard(axis: 'Y', value: ble.accelerationY, color: AppColors.green)),
-                  const SizedBox(width: 10),
-                  Expanded(child: _AxisCard(axis: 'Z', value: ble.accelerationZ, color: AppColors.sky)),
-                ],
               ),
               const SizedBox(height: 24),
               Text('GYROSCOPE (°/s)', style: AppFonts.label(fontSize: 11)),
@@ -126,7 +109,7 @@ class AccelerometerScreen extends StatelessWidget {
                   child: Text(
                     ble.connected
                         ? 'Connected, but no IMU data yet — make sure the firmware is publishing the "imu": {"ax","ay","az","gx","gy","gz"} fields in its JSON packet.'
-                        : 'Connect to your InSoul shoe from the Home screen to see live accelerometer values here.',
+                        : 'Connect to your InSoul shoe from the Home screen to see live gyroscope values here.',
                     style: AppFonts.body(fontSize: 12.5, color: AppColors.amber, height: 1.4),
                   ),
                 ),

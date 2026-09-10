@@ -1,0 +1,1 @@
+void downloadDashboardReport(String html) {}
